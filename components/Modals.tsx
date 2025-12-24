@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { X } from 'lucide-react';
+import { X, Calendar, Clock } from 'lucide-react';
 import { Button, Input } from './UI';
 import { TRANSLATIONS } from '../constants';
 import { Language } from '../types';
@@ -14,15 +14,15 @@ interface ModalBaseProps {
 const ModalBase: React.FC<ModalBaseProps> = ({ title, isOpen, onClose, children }) => {
   if (!isOpen) return null;
   return (
-    <div className="modal-backdrop">
-      <div className="modal-box">
-        <div className="modal-header">
-          <h3 className="text-xl font-bold">{title}</h3>
-          <button onClick={onClose} className="btn-icon">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-in fade-in duration-200">
+      <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl max-w-md w-full border border-slate-200 dark:border-slate-800 overflow-hidden">
+        <div className="flex items-center justify-between p-4 border-b border-slate-200 dark:border-slate-800">
+          <h3 className="text-lg font-semibold text-slate-900 dark:text-white">{title}</h3>
+          <button onClick={onClose} className="text-slate-500 hover:text-slate-700 dark:hover:text-slate-300">
             <X size={20} />
           </button>
         </div>
-        <div className="modal-body">
+        <div className="p-6">
           {children}
         </div>
       </div>
@@ -59,7 +59,7 @@ export const CreatePoolModal: React.FC<CreatePoolModalProps> = ({ isOpen, onClos
 
   return (
     <ModalBase title={t.newPool} isOpen={isOpen} onClose={onClose}>
-      <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+      <form onSubmit={handleSubmit} className="space-y-4">
         <Input 
           label={t.pair} 
           placeholder={t.pairPlaceholder} 
@@ -78,27 +78,27 @@ export const CreatePoolModal: React.FC<CreatePoolModalProps> = ({ isOpen, onClos
           required 
         />
         
-        <div className="flex items-center gap-2 mb-1">
+        <div className="flex items-center gap-2 mb-2">
             <input 
                 type="checkbox" 
                 id="customTime" 
                 checked={useCustomTime} 
                 onChange={e => setUseCustomTime(e.target.checked)}
-                className="cursor-pointer"
+                className="rounded border-slate-300 dark:border-slate-700 text-blue-600 focus:ring-blue-500"
             />
-            <label htmlFor="customTime" className="text-sm text-muted cursor-pointer select-none">
+            <label htmlFor="customTime" className="text-sm text-slate-600 dark:text-slate-400 select-none cursor-pointer">
                 {t.manualTime}
             </label>
         </div>
 
         {useCustomTime && (
-            <div className="grid grid-cols-2 gap-4 animate-in">
+            <div className="grid grid-cols-2 gap-4 animate-in slide-in-from-top-2">
                 <Input type="date" value={date} onChange={e => setDate(e.target.value)} required={useCustomTime} />
                 <Input type="time" value={time} onChange={e => setTime(e.target.value)} required={useCustomTime} />
             </div>
         )}
 
-        <div className="flex justify-end gap-3 mt-2">
+        <div className="flex justify-end gap-3 mt-6">
           <Button type="button" variant="ghost" onClick={onClose}>{t.cancel}</Button>
           <Button type="submit">{t.createPool}</Button>
         </div>
@@ -135,7 +135,7 @@ export const AddTransactionModal: React.FC<AddTransactionModalProps> = ({ isOpen
 
   return (
     <ModalBase title={title} isOpen={isOpen} onClose={onClose}>
-      <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+      <form onSubmit={handleSubmit} className="space-y-4">
         <Input 
           label={t.amount} 
           type="number" 
@@ -147,27 +147,27 @@ export const AddTransactionModal: React.FC<AddTransactionModalProps> = ({ isOpen
           autoFocus
         />
         
-        <div className="flex items-center gap-2 mb-1">
+        <div className="flex items-center gap-2 mb-2">
             <input 
                 type="checkbox" 
                 id="customTimeTx" 
                 checked={useCustomTime} 
                 onChange={e => setUseCustomTime(e.target.checked)}
-                className="cursor-pointer"
+                className="rounded border-slate-300 dark:border-slate-700 text-blue-600 focus:ring-blue-500"
             />
-            <label htmlFor="customTimeTx" className="text-sm text-muted cursor-pointer select-none">
+            <label htmlFor="customTimeTx" className="text-sm text-slate-600 dark:text-slate-400 select-none cursor-pointer">
                 {t.manualTime}
             </label>
         </div>
 
         {useCustomTime && (
-            <div className="grid grid-cols-2 gap-4 animate-in">
+            <div className="grid grid-cols-2 gap-4 animate-in slide-in-from-top-2">
                 <Input type="date" value={date} onChange={e => setDate(e.target.value)} required={useCustomTime} />
                 <Input type="time" value={time} onChange={e => setTime(e.target.value)} required={useCustomTime} />
             </div>
         )}
 
-        <div className="flex justify-end gap-3 mt-2">
+        <div className="flex justify-end gap-3 mt-6">
           <Button type="button" variant="ghost" onClick={onClose}>{t.cancel}</Button>
           <Button type="submit">{t.save}</Button>
         </div>
