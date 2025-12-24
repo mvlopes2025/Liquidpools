@@ -1,0 +1,5 @@
+{
+  "name": "LiquidityFlow",
+  "description": "A premium, minimalist DeFi Liquidity Pool manager focused on ROI tracking and historical auditing. Supports dark/light modes and internationalization.",
+  "requestFramePermissions": []
+}
