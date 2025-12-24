@@ -5,7 +5,6 @@ import {
   Plus, 
   Moon, 
   Sun, 
-  Globe, 
   TrendingUp, 
   ArrowLeft,
   DollarSign,
@@ -20,11 +19,9 @@ import {
   YAxis, 
   CartesianGrid, 
   Tooltip, 
-  ResponsiveContainer,
-  BarChart,
-  Bar
+  ResponsiveContainer
 } from 'recharts';
-import { Pool, Language, Transaction } from './types';
+import { Pool, Language } from './types';
 import { TRANSLATIONS, formatCurrency, formatDate } from './constants';
 import { StorageService } from './services/storage';
 import { Button, Card, Badge } from './components/UI';
@@ -56,21 +53,17 @@ function App() {
 
   const selectedPoolTransactions = useMemo(() => 
     selectedPoolId ? StorageService.getTransactions(selectedPoolId) : [],
-  [selectedPoolId, pools]); // Dependency on pools ensures refresh when transaction adds
+  [selectedPoolId, pools]);
 
   // Effects
   useEffect(() => {
-    // Initial Load
     setPools(StorageService.getPools());
-    
-    // Theme Init
     if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
       setTheme('dark');
     }
   }, []);
 
   useEffect(() => {
-    // Apply Theme
     if (theme === 'dark') {
       document.documentElement.classList.add('dark');
     } else {
@@ -81,7 +74,7 @@ function App() {
   // Handlers
   const handleCreatePool = (pair: string, amount: number, time: number) => {
     StorageService.createPool(pair, amount, time);
-    setPools(StorageService.getPools()); // Refresh
+    setPools(StorageService.getPools());
   };
 
   const handleAddFee = (amount: number, time: number) => {
@@ -111,64 +104,61 @@ function App() {
     setView('POOL_DETAIL');
   };
 
-  // --- SUB-COMPONENTS (RENDER HELPERS) ---
+  // --- SUB-COMPONENTS ---
 
   const StatCard = ({ title, value, subValue, icon: Icon }: any) => (
-    <Card className="flex items-start justify-between relative overflow-hidden group">
-      <div className="z-10 relative">
-        <p className="text-sm font-medium text-slate-500 dark:text-slate-400 mb-1">{title}</p>
-        <h3 className="text-2xl font-bold text-slate-900 dark:text-white tracking-tight">{value}</h3>
-        {subValue && <p className="text-xs text-emerald-600 dark:text-emerald-400 mt-1 font-medium">{subValue}</p>}
+    <Card className="flex justify-between">
+      <div>
+        <p className="text-sm font-medium text-muted mb-1">{title}</p>
+        <h3 className="text-2xl font-bold">{value}</h3>
+        {subValue && <p className="text-xs text-success mt-1 font-medium">{subValue}</p>}
       </div>
-      <div className="p-3 bg-slate-100 dark:bg-slate-800 rounded-lg group-hover:scale-110 transition-transform duration-300">
-        <Icon className="w-6 h-6 text-slate-700 dark:text-slate-300" />
+      <div className="icon-box bg-slate-soft">
+        <Icon size={20} />
       </div>
-      <div className="absolute -right-6 -bottom-6 w-24 h-24 bg-gradient-to-br from-blue-500/5 to-purple-500/5 rounded-full blur-2xl pointer-events-none" />
     </Card>
   );
 
   const PoolsList = ({ items, emptyMessage }: { items: Pool[], emptyMessage: string }) => {
     if (items.length === 0) {
       return (
-        <div className="flex flex-col items-center justify-center py-20 text-center">
-          <div className="w-16 h-16 bg-slate-100 dark:bg-slate-800 rounded-full flex items-center justify-center mb-4">
-            <Archive className="w-8 h-8 text-slate-400" />
+        <div className="flex flex-col items-center justify-center py-20 text-center text-muted">
+          <div className="icon-box bg-slate-soft" style={{ width: 64, height: 64, marginBottom: 16 }}>
+            <Archive size={32} />
           </div>
-          <p className="text-slate-500 dark:text-slate-400">{emptyMessage}</p>
+          <p>{emptyMessage}</p>
         </div>
       );
     }
     return (
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+      <div className="grid grid-pools">
         {items.map(pool => (
-          <Card key={pool.id} onClick={() => navigateToPool(pool.id)} className="hover:border-blue-500/30 group">
+          <Card key={pool.id} onClick={() => navigateToPool(pool.id)}>
             <div className="flex justify-between items-start mb-4">
               <div>
-                <h4 className="font-bold text-lg text-slate-900 dark:text-white group-hover:text-blue-500 transition-colors">
-                    {pool.pairName}
-                </h4>
-                <p className="text-xs text-slate-500">{formatDate(pool.createdAt, lang)}</p>
+                <h4 className="font-bold text-xl text-primary">{pool.pairName}</h4>
+                <p className="text-xs text-muted">{formatDate(pool.createdAt, lang)}</p>
               </div>
               <Badge type={pool.status === 'ACTIVE' ? 'success' : 'neutral'}>
                 {pool.status === 'ACTIVE' ? t.activePools.split(' ')[1] : t.status}
               </Badge>
             </div>
             
-            <div className="space-y-3">
+            <div className="flex flex-col gap-2">
               <div className="flex justify-between text-sm">
-                <span className="text-slate-500">{t.invested}</span>
-                <span className="font-medium text-slate-900 dark:text-slate-200">{formatCurrency(pool.totalInvested, lang)}</span>
+                <span className="text-muted">{t.invested}</span>
+                <span className="font-medium">{formatCurrency(pool.totalInvested, lang)}</span>
               </div>
               <div className="flex justify-between text-sm">
-                <span className="text-slate-500">{t.fees}</span>
-                <span className="font-medium text-emerald-600 dark:text-emerald-400">{formatCurrency(pool.totalFees, lang)}</span>
+                <span className="text-muted">{t.fees}</span>
+                <span className="font-medium text-success">{formatCurrency(pool.totalFees, lang)}</span>
               </div>
-              <div className="w-full bg-slate-100 dark:bg-slate-800 h-1.5 rounded-full overflow-hidden mt-2">
-                 <div className="bg-emerald-500 h-full rounded-full transition-all duration-1000" style={{ width: `${Math.min(pool.currentROI, 100)}%` }} />
+              <div className="progress-bg">
+                 <div className="progress-fill" style={{ width: `${Math.min(pool.currentROI, 100)}%` }} />
               </div>
               <div className="flex justify-between items-center text-xs pt-1">
-                <span className="text-slate-500">ROI</span>
-                <span className="font-bold text-emerald-600 dark:text-emerald-400">+{pool.currentROI.toFixed(2)}%</span>
+                <span className="text-muted">ROI</span>
+                <span className="font-bold text-success">+{pool.currentROI.toFixed(2)}%</span>
               </div>
             </div>
           </Card>
@@ -183,31 +173,18 @@ function App() {
     const avgRoi = activePools.length > 0 ? (totalEarnings / totalInvested) * 100 : 0;
 
     return (
-      <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <StatCard 
-            title={t.totalValueLocked} 
-            value={formatCurrency(totalInvested, lang)} 
-            icon={DollarSign} 
-          />
-          <StatCard 
-            title={t.totalEarnings} 
-            value={formatCurrency(totalEarnings, lang)} 
-            subValue={`+${avgRoi.toFixed(2)}%`}
-            icon={TrendingUp} 
-          />
-          <StatCard 
-            title={t.activePools} 
-            value={activePools.length} 
-            icon={Droplets} 
-          />
+      <div className="flex flex-col gap-6 animate-in">
+        <div className="grid grid-dashboard">
+          <StatCard title={t.totalValueLocked} value={formatCurrency(totalInvested, lang)} icon={DollarSign} />
+          <StatCard title={t.totalEarnings} value={formatCurrency(totalEarnings, lang)} subValue={`+${avgRoi.toFixed(2)}%`} icon={TrendingUp} />
+          <StatCard title={t.activePools} value={activePools.length} icon={Droplets} />
         </div>
 
         <div>
             <div className="flex justify-between items-center mb-6">
-                <h2 className="text-xl font-bold text-slate-900 dark:text-white">{t.activePools}</h2>
+                <h2 className="text-xl font-bold">{t.activePools}</h2>
                 <Button onClick={() => setIsCreateModalOpen(true)} size="sm">
-                    <Plus size={16} className="mr-2" />
+                    <Plus size={16} style={{marginRight: 8}} />
                     {t.createPool}
                 </Button>
             </div>
@@ -218,9 +195,9 @@ function App() {
   };
 
   const HistoryView = () => (
-    <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
+    <div className="animate-in">
        <div className="flex justify-between items-center mb-6">
-          <h2 className="text-xl font-bold text-slate-900 dark:text-white">{t.noHistory.replace('Nenhuma', '').replace('No', 'Closed')}</h2>
+          <h2 className="text-xl font-bold">{t.noHistory.replace('Nenhuma', '').replace('No', 'Closed')}</h2>
       </div>
       <PoolsList items={closedPools} emptyMessage={t.noHistory} />
     </div>
@@ -229,13 +206,10 @@ function App() {
   const PoolDetailView = () => {
     if (!selectedPool) return null;
 
-    // Prepare Chart Data
-    // Aggregate fees by date for the chart
     const feeTransactions = selectedPoolTransactions
         .filter(tx => tx.type === 'FEE')
         .sort((a, b) => a.timestamp - b.timestamp);
     
-    // Accumulate fees over time
     let runningTotal = 0;
     const chartData = feeTransactions.map(tx => {
         runningTotal += tx.amount;
@@ -247,21 +221,21 @@ function App() {
     });
 
     return (
-      <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-300">
+      <div className="flex flex-col gap-6 animate-in">
         {/* Header */}
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 md-row">
           <div className="flex items-center gap-4">
             <Button variant="ghost" onClick={() => setView('DASHBOARD')} className="!p-2">
               <ArrowLeft size={20} />
             </Button>
             <div>
-              <h1 className="text-2xl font-bold text-slate-900 dark:text-white flex items-center gap-3">
+              <h1 className="text-2xl font-bold flex items-center gap-3">
                 {selectedPool.pairName}
                 <Badge type={selectedPool.status === 'ACTIVE' ? 'success' : 'neutral'}>
                   {selectedPool.status}
                 </Badge>
               </h1>
-              <p className="text-sm text-slate-500 mt-1">
+              <p className="text-sm text-muted mt-1">
                 {t.date}: {formatDate(selectedPool.createdAt, lang)}
               </p>
             </div>
@@ -270,11 +244,11 @@ function App() {
           {selectedPool.status === 'ACTIVE' && (
             <div className="flex gap-2 w-full md:w-auto">
                 <Button variant="secondary" onClick={() => setIsLiquidityModalOpen(true)} className="flex-1 md:flex-none">
-                    <Droplets size={16} className="mr-2" />
+                    <Droplets size={16} style={{marginRight: 8}} />
                     {t.addLiquidity}
                 </Button>
                 <Button onClick={() => setIsFeeModalOpen(true)} className="flex-1 md:flex-none">
-                    <Plus size={16} className="mr-2" />
+                    <Plus size={16} style={{marginRight: 8}} />
                     {t.addFee}
                 </Button>
             </div>
@@ -282,33 +256,34 @@ function App() {
         </div>
 
         {/* Stats Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-            <Card className="p-4">
-                <p className="text-sm text-slate-500 mb-1">{t.invested}</p>
-                <p className="text-xl font-bold text-slate-900 dark:text-white">{formatCurrency(selectedPool.totalInvested, lang)}</p>
+        <div className="grid grid-stats">
+            <Card>
+                <p className="text-sm text-muted mb-1">{t.invested}</p>
+                <p className="text-xl font-bold">{formatCurrency(selectedPool.totalInvested, lang)}</p>
             </Card>
-            <Card className="p-4">
-                <p className="text-sm text-slate-500 mb-1">{t.collectedFees}</p>
-                <p className="text-xl font-bold text-emerald-600 dark:text-emerald-400">{formatCurrency(selectedPool.totalFees, lang)}</p>
+            <Card>
+                <p className="text-sm text-muted mb-1">{t.collectedFees}</p>
+                <p className="text-xl font-bold text-success">{formatCurrency(selectedPool.totalFees, lang)}</p>
             </Card>
-            <Card className="p-4">
-                <p className="text-sm text-slate-500 mb-1">ROI</p>
-                <p className="text-xl font-bold text-blue-600 dark:text-blue-400">{selectedPool.currentROI.toFixed(2)}%</p>
+            <Card>
+                <p className="text-sm text-muted mb-1">ROI</p>
+                <p className="text-xl font-bold text-primary">{selectedPool.currentROI.toFixed(2)}%</p>
             </Card>
-            <Card className="p-4">
-                 <p className="text-sm text-slate-500 mb-1">{t.duration}</p>
-                 <p className="text-xl font-bold text-slate-900 dark:text-white">
+            <Card>
+                 <p className="text-sm text-muted mb-1">{t.duration}</p>
+                 <p className="text-xl font-bold">
                     {Math.ceil((Date.now() - selectedPool.createdAt) / (1000 * 60 * 60 * 24))} {t.days}
                  </p>
             </Card>
         </div>
 
         {/* Charts Section */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="grid grid-charts">
             {/* Main Chart */}
-            <div className="lg:col-span-2">
-                <Card className="h-[400px] flex flex-col">
-                    <h3 className="text-lg font-semibold mb-6 text-slate-900 dark:text-white">{t.performance} (Cumulative Fees)</h3>
+            <div className="lg:col-span-2" style={{gridColumn: 'span 2'}}>
+                <Card className="h-full">
+                    <h3 className="text-lg font-bold mb-6">{t.performance} (Cumulative Fees)</h3>
+                    <div style={{width: '100%', height: 300}}>
                     {chartData.length > 0 ? (
                         <ResponsiveContainer width="100%" height="100%">
                             <AreaChart data={chartData}>
@@ -349,35 +324,36 @@ function App() {
                             </AreaChart>
                         </ResponsiveContainer>
                     ) : (
-                        <div className="flex-1 flex items-center justify-center text-slate-400 border border-dashed border-slate-700 rounded-lg">
+                        <div className="flex justify-center items-center h-full text-muted" style={{border: '1px dashed var(--border)', borderRadius: 8}}>
                             No chart data available
                         </div>
                     )}
+                    </div>
                 </Card>
             </div>
 
             {/* History Feed */}
-            <div className="lg:col-span-1">
-                <Card className="h-[400px] flex flex-col">
-                    <h3 className="text-lg font-semibold mb-4 text-slate-900 dark:text-white">{t.feeHistory}</h3>
-                    <div className="flex-1 overflow-y-auto pr-2 space-y-3">
+            <div style={{gridColumn: 'span 1'}}>
+                <Card className="h-full">
+                    <h3 className="text-lg font-bold mb-4">{t.feeHistory}</h3>
+                    <div style={{ maxHeight: 300, overflowY: 'auto', paddingRight: 4 }}>
                         {selectedPoolTransactions.map((tx) => (
-                            <div key={tx.id} className="flex justify-between items-center p-3 rounded-lg bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-800">
-                                <div className="flex items-center gap-3">
-                                    <div className={`w-8 h-8 rounded-full flex items-center justify-center ${
-                                        tx.type === 'FEE' ? 'bg-emerald-500/20 text-emerald-500' :
-                                        tx.type === 'DEPOSIT' ? 'bg-blue-500/20 text-blue-500' : 'bg-red-500/20 text-red-500'
+                            <div key={tx.id} className="list-item">
+                                <div className="flex items-center">
+                                    <div className={`icon-box ${
+                                        tx.type === 'FEE' ? 'bg-emerald-soft' :
+                                        tx.type === 'DEPOSIT' ? 'bg-blue-soft' : 'bg-slate-soft'
                                     }`}>
                                         {tx.type === 'FEE' ? <DollarSign size={14} /> : 
                                          tx.type === 'DEPOSIT' ? <ArrowUpRight size={14} /> : <Archive size={14} />}
                                     </div>
                                     <div>
-                                        <p className="text-xs font-medium text-slate-500 uppercase">{tx.type}</p>
-                                        <p className="text-xs text-slate-400">{formatDate(tx.timestamp, lang)}</p>
+                                        <p className="text-xs font-medium text-muted uppercase">{tx.type}</p>
+                                        <p className="text-xs text-muted">{formatDate(tx.timestamp, lang)}</p>
                                     </div>
                                 </div>
-                                <span className={`font-mono font-medium ${
-                                    tx.type === 'FEE' ? 'text-emerald-500' : 'text-slate-900 dark:text-white'
+                                <span className={`font-medium ${
+                                    tx.type === 'FEE' ? 'text-success' : ''
                                 }`}>
                                     {tx.type === 'FEE' ? '+' : ''}{formatCurrency(tx.amount, lang)}
                                 </span>
@@ -389,8 +365,8 @@ function App() {
         </div>
 
         {selectedPool.status === 'ACTIVE' && (
-            <div className="flex justify-center pt-8 border-t border-slate-200 dark:border-slate-800">
-                <Button variant="ghost" className="text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20" onClick={handleClosePool}>
+            <div className="flex justify-center" style={{paddingTop: 32, borderTop: '1px solid var(--border)'}}>
+                <Button variant="danger" onClick={handleClosePool}>
                     {t.closePool}
                 </Button>
             </div>
@@ -400,62 +376,58 @@ function App() {
   };
 
   return (
-    <div className="min-h-screen pb-12">
+    <div className="min-h-screen">
       {/* Navigation */}
-      <nav className="sticky top-0 z-40 w-full bg-white/80 dark:bg-slate-950/80 backdrop-blur-md border-b border-slate-200 dark:border-slate-800">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between h-16 items-center">
-            <div className="flex items-center gap-2 cursor-pointer" onClick={() => setView('DASHBOARD')}>
-              <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center text-white font-bold">L</div>
-              <span className="text-xl font-bold tracking-tight text-slate-900 dark:text-white">LiquidityFlow</span>
+      <nav className="navbar">
+        <div className="container flex justify-between w-full">
+          <div className="flex items-center cursor-pointer" onClick={() => setView('DASHBOARD')}>
+            <div className="logo-box">L</div>
+            <span className="text-xl font-bold">LiquidityFlow</span>
+          </div>
+          
+          <div className="flex items-center">
+            {/* Desktop Nav */}
+            <div className="hidden md-flex gap-2">
+              <Button 
+                  variant={view === 'DASHBOARD' ? 'secondary' : 'ghost'} 
+                  onClick={() => setView('DASHBOARD')}
+              >
+                  <LayoutDashboard size={18} style={{marginRight: 8}} />
+                  {t.dashboard}
+              </Button>
+              <Button 
+                  variant={view === 'HISTORY' ? 'secondary' : 'ghost'} 
+                  onClick={() => setView('HISTORY')}
+              >
+                  <HistoryIcon size={18} style={{marginRight: 8}} />
+                  {t.history}
+              </Button>
             </div>
-            
-            <div className="flex items-center gap-6">
-              {/* Desktop Nav */}
-              <div className="hidden md:flex gap-1">
-                <Button 
-                    variant="ghost" 
-                    className={view === 'DASHBOARD' ? 'bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-white' : ''}
-                    onClick={() => setView('DASHBOARD')}
-                >
-                    <LayoutDashboard size={18} className="mr-2" />
-                    {t.dashboard}
-                </Button>
-                <Button 
-                    variant="ghost" 
-                    className={view === 'HISTORY' ? 'bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-white' : ''}
-                    onClick={() => setView('HISTORY')}
-                >
-                    <HistoryIcon size={18} className="mr-2" />
-                    {t.history}
-                </Button>
-              </div>
 
-              <div className="h-6 w-px bg-slate-200 dark:bg-slate-800 mx-2" />
+            <div className="nav-divider" />
 
-              {/* Toggles */}
-              <div className="flex items-center gap-2">
-                <button 
-                  onClick={() => setLang(l => l === 'en' ? 'pt' : 'en')}
-                  className="p-2 rounded-lg text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
-                  title="Switch Language"
-                >
-                    <span className="font-bold text-xs">{lang.toUpperCase()}</span>
-                </button>
-                <button 
-                  onClick={() => setTheme(t => t === 'light' ? 'dark' : 'light')}
-                  className="p-2 rounded-lg text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
-                >
-                  {theme === 'dark' ? <Sun size={20} /> : <Moon size={20} />}
-                </button>
-              </div>
+            {/* Toggles */}
+            <div className="flex gap-2">
+              <button 
+                onClick={() => setLang(l => l === 'en' ? 'pt' : 'en')}
+                className="btn-icon text-xs font-bold"
+                title="Switch Language"
+              >
+                  {lang.toUpperCase()}
+              </button>
+              <button 
+                onClick={() => setTheme(t => t === 'light' ? 'dark' : 'light')}
+                className="btn-icon"
+              >
+                {theme === 'dark' ? <Sun size={20} /> : <Moon size={20} />}
+              </button>
             </div>
           </div>
         </div>
       </nav>
 
       {/* Main Content */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <main className="container" style={{paddingTop: 32, paddingBottom: 48}}>
         {view === 'DASHBOARD' && <DashboardView />}
         {view === 'HISTORY' && <HistoryView />}
         {view === 'POOL_DETAIL' && <PoolDetailView />}
